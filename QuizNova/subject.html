@@ -1,0 +1,386 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Select Subject | QuizNova</title>
+<link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
+<link href="https://cdn.jsdelivr.net/npm/bootstrap-icons/font/bootstrap-icons.css" rel="stylesheet">
+<link rel="stylesheet" href="css/style.css">
+<script src="https://code.jquery.com/jquery-3.7.1.min.js"></script>
+<style>
+  .subject-card {
+    padding: 24px 14px;
+    border-radius: 20px;
+    background: rgba(255,255,255,0.055);
+    border: 1px solid rgba(255,255,255,0.12);
+    transition: all 0.3s cubic-bezier(0.34,1.56,0.64,1);
+    cursor: pointer;
+    height: 100%;
+    text-align: center;
+    position: relative;
+    overflow: hidden;
+  }
+  .subject-card::before {
+    content: '';
+    position: absolute;
+    inset: 0;
+    background: linear-gradient(135deg, rgba(56,189,248,0.08), rgba(167,139,250,0.08));
+    opacity: 0;
+    transition: 0.3s;
+  }
+  .subject-card:hover::before { opacity: 1; }
+  .subject-card:hover {
+    transform: translateY(-8px) scale(1.03);
+    border-color: rgba(56,189,248,0.5);
+    box-shadow: 0 20px 40px rgba(56,189,248,0.15);
+  }
+  .subject-card.selected {
+    border: 2px solid #38bdf8;
+    box-shadow: 0 0 25px rgba(56,189,248,0.4);
+    background: rgba(56,189,248,0.08);
+  }
+  .subject-icon {
+    font-size: 40px;
+    background: linear-gradient(135deg, #38bdf8, #a78bfa);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    background-clip: text;
+    display: block;
+    margin-bottom: 10px;
+  }
+  .subject-title { font-size: 15px; font-weight: 600; margin-bottom: 4px; }
+  .subject-desc { font-size: 11px; color: #8892b0 !important; }
+
+  /* Difficulty */
+  .difficulty-section {
+    background: rgba(255,255,255,0.04);
+    border: 1px solid rgba(255,255,255,0.10);
+    border-radius: 20px;
+    padding: 28px;
+    margin-top: 24px;
+    display: none;
+    animation: fadeIn 0.4s ease;
+  }
+  .diff-btn {
+    padding: 14px 28px;
+    border-radius: 50px;
+    border: 2px solid;
+    font-weight: 600;
+    font-size: 15px;
+    transition: all 0.3s;
+    cursor: pointer;
+    background: transparent;
+    position: relative;
+    overflow: hidden;
+  }
+  .diff-btn.easy {
+    border-color: #22c55e;
+    color: #22c55e !important;
+  }
+  .diff-btn.easy:hover, .diff-btn.easy.active {
+    background: #22c55e;
+    color: #020617 !important;
+    box-shadow: 0 8px 25px rgba(34,197,94,0.4);
+    transform: translateY(-3px);
+  }
+  .diff-btn.medium {
+    border-color: #f59e0b;
+    color: #f59e0b !important;
+  }
+  .diff-btn.medium:hover, .diff-btn.medium.active {
+    background: #f59e0b;
+    color: #020617 !important;
+    box-shadow: 0 8px 25px rgba(245,158,11,0.4);
+    transform: translateY(-3px);
+  }
+  .diff-btn.hard {
+    border-color: #ef4444;
+    color: #ef4444 !important;
+  }
+  .diff-btn.hard:hover, .diff-btn.hard.active {
+    background: #ef4444;
+    color: #fff !important;
+    box-shadow: 0 8px 25px rgba(239,68,68,0.4);
+    transform: translateY(-3px);
+  }
+  .diff-btn i { margin-right: 6px; }
+
+  .selected-subject-badge {
+    display: inline-flex; align-items: center; gap: 8px;
+    background: rgba(56,189,248,0.12);
+    border: 1px solid rgba(56,189,248,0.3);
+    border-radius: 50px;
+    padding: 6px 18px;
+    font-size: 13px;
+    color: #38bdf8 !important;
+  }
+  .diff-info {
+    font-size: 12px;
+    color: #8892b0 !important;
+    margin-top: 6px;
+  }
+
+  /* Proceed btn hidden until diff selected */
+  #proceedBtn { display: none; }
+
+  .checkmark {
+    position: absolute;
+    top: 8px; right: 8px;
+    width: 20px; height: 20px;
+    background: #38bdf8;
+    border-radius: 50%;
+    display: none;
+    align-items: center; justify-content: center;
+    font-size: 10px;
+    color: #020617 !important;
+  }
+  .subject-card.selected .checkmark { display: flex; }
+
+  @keyframes fadeIn {
+    from { opacity: 0; transform: translateY(12px); }
+    to { opacity: 1; transform: translateY(0); }
+  }
+
+  .page-title { font-size: 2rem; font-weight: 800; margin-bottom: 4px; }
+  .step-indicator {
+    display: flex; gap: 8px; align-items: center; justify-content: center;
+    margin-bottom: 28px;
+  }
+  .step { display: flex; align-items: center; gap: 6px; font-size: 13px; }
+  .step-num {
+    width: 26px; height: 26px; border-radius: 50%;
+    display: flex; align-items: center; justify-content: center;
+    font-size: 12px; font-weight: 700;
+    border: 2px solid rgba(255,255,255,0.2);
+    color: #8892b0 !important;
+  }
+  .step.active .step-num {
+    background: linear-gradient(135deg, #38bdf8, #a78bfa);
+    border-color: transparent;
+    color: #020617 !important;
+  }
+  .step.done .step-num { background: #22c55e; border-color: transparent; color: #020617 !important; }
+  .step-line { width: 30px; height: 2px; background: rgba(255,255,255,0.1); border-radius: 2px; }
+  .step.done + .step-line { background: #22c55e; }
+</style>
+</head>
+
+<body>
+<nav class="navbar fixed-top">
+  <div class="container d-flex justify-content-between align-items-center">
+    <span class="brand">QuizNova</span>
+    <div class="d-flex align-items-center gap-2">
+      <span id="userEmailNav" class="text-muted" style="font-size:13px;"></span>
+      <a href="welcome.html" title="Home"><i class="bi bi-house-fill"></i></a>
+      <a href="about.html" title="About"><i class="bi bi-info-circle-fill"></i></a>
+      <button id="logoutBtn" class="btn btn-outline-light btn-sm ms-2" style="font-size:12px;">Logout</button>
+    </div>
+  </div>
+</nav>
+
+<div style="height:90px"></div>
+
+<div class="container fade-in pb-5">
+
+  <!-- Step indicator -->
+  <div class="text-center mb-4">
+    <div class="page-title">Choose Your Quiz</div>
+    <p class="text-muted">Pick a subject and difficulty level to begin</p>
+  </div>
+
+  <div class="step-indicator">
+    <div class="step active" id="step1">
+      <div class="step-num">1</div>
+      <span style="font-size:13px; color: #f0f4ff;">Subject</span>
+    </div>
+    <div class="step-line"></div>
+    <div class="step" id="step2">
+      <div class="step-num">2</div>
+      <span style="font-size:13px; color: #8892b0;">Difficulty</span>
+    </div>
+    <div class="step-line"></div>
+    <div class="step" id="step3">
+      <div class="step-num">3</div>
+      <span style="font-size:13px; color: #8892b0;">Start</span>
+    </div>
+  </div>
+
+  <!-- Subject Grid -->
+  <div class="card p-4" id="subjectCard">
+    <h5 class="mb-3 text-center fw-semibold">Step 1 — Select Subject</h5>
+    <div class="row g-3">
+      <div class="col-lg-3 col-md-4 col-6">
+        <div class="subject-card" data-subject="Python">
+          <div class="checkmark"><i class="bi bi-check"></i></div>
+          <i class="bi bi-filetype-py subject-icon"></i>
+          <div class="subject-title">Python</div>
+          <div class="subject-desc">Logic • OOP • Scripting</div>
+        </div>
+      </div>
+      <div class="col-lg-3 col-md-4 col-6">
+        <div class="subject-card" data-subject="Java">
+          <div class="checkmark"><i class="bi bi-check"></i></div>
+          <i class="bi bi-cup-hot subject-icon"></i>
+          <div class="subject-title">Java</div>
+          <div class="subject-desc">JVM • OOP • Backend</div>
+        </div>
+      </div>
+      <div class="col-lg-3 col-md-4 col-6">
+        <div class="subject-card" data-subject="DBMS">
+          <div class="checkmark"><i class="bi bi-check"></i></div>
+          <i class="bi bi-database subject-icon"></i>
+          <div class="subject-title">DBMS</div>
+          <div class="subject-desc">SQL • Design • ACID</div>
+        </div>
+      </div>
+      <div class="col-lg-3 col-md-4 col-6">
+        <div class="subject-card" data-subject="DS">
+          <div class="checkmark"><i class="bi bi-check"></i></div>
+          <i class="bi bi-diagram-3 subject-icon"></i>
+          <div class="subject-title">Data Structures</div>
+          <div class="subject-desc">Trees • Graphs • Heaps</div>
+        </div>
+      </div>
+      <div class="col-lg-3 col-md-4 col-6">
+        <div class="subject-card" data-subject="C">
+          <div class="checkmark"><i class="bi bi-check"></i></div>
+          <i class="bi bi-code-slash subject-icon"></i>
+          <div class="subject-title">C Programming</div>
+          <div class="subject-desc">Pointers • Memory • Logic</div>
+        </div>
+      </div>
+      <div class="col-lg-3 col-md-4 col-6">
+        <div class="subject-card" data-subject="C++">
+          <div class="checkmark"><i class="bi bi-check"></i></div>
+          <i class="bi bi-braces subject-icon"></i>
+          <div class="subject-title">C++</div>
+          <div class="subject-desc">OOP • STL • Templates</div>
+        </div>
+      </div>
+      <div class="col-lg-3 col-md-4 col-6">
+        <div class="subject-card" data-subject="Web">
+          <div class="checkmark"><i class="bi bi-check"></i></div>
+          <i class="bi bi-globe subject-icon"></i>
+          <div class="subject-title">Web Tech</div>
+          <div class="subject-desc">HTML • CSS • JavaScript</div>
+        </div>
+      </div>
+      <div class="col-lg-3 col-md-4 col-6">
+        <div class="subject-card" data-subject="OS">
+          <div class="checkmark"><i class="bi bi-check"></i></div>
+          <i class="bi bi-cpu subject-icon"></i>
+          <div class="subject-title">Operating System</div>
+          <div class="subject-desc">Process • Memory • FS</div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Difficulty Section -->
+  <div class="difficulty-section" id="diffSection">
+    <div class="text-center mb-4">
+      <h5 class="fw-semibold mb-1">Step 2 — Choose Difficulty</h5>
+      <div>
+        <span class="selected-subject-badge">
+          <i class="bi bi-check-circle-fill"></i>
+          <span id="selectedSubjectLabel">Subject</span>
+        </span>
+      </div>
+    </div>
+    <div class="d-flex justify-content-center gap-3 flex-wrap">
+      <div class="text-center">
+        <button class="diff-btn easy" data-diff="easy">
+          <i class="bi bi-emoji-smile"></i> Easy
+        </button>
+        <div class="diff-info">Perfect for beginners</div>
+      </div>
+      <div class="text-center">
+        <button class="diff-btn medium" data-diff="medium">
+          <i class="bi bi-lightning-charge"></i> Medium
+        </button>
+        <div class="diff-info">Test your knowledge</div>
+      </div>
+      <div class="text-center">
+        <button class="diff-btn hard" data-diff="hard">
+          <i class="bi bi-fire"></i> Hard
+        </button>
+        <div class="diff-info">Expert level challenge</div>
+      </div>
+    </div>
+
+    <div class="text-center mt-4">
+      <button id="proceedBtn" class="btn btn-primary px-5 py-3" style="font-size:16px;">
+        <i class="bi bi-play-circle me-2"></i> Start Quiz
+      </button>
+    </div>
+  </div>
+
+</div>
+
+<footer class="mt-5">
+  <div class="container py-4 text-center">
+    © 2026 QuizNova
+  </div>
+</footer>
+
+<script>
+$(document).ready(function(){
+
+  let user = localStorage.getItem("quizUser");
+  if(!user) window.location.href = "index.html";
+  $("#userEmailNav").text(user);
+
+  let selectedSubject = null;
+  let selectedDiff = null;
+
+  // Logout
+  $("#logoutBtn").click(function(){
+    localStorage.clear();
+    window.location.href = "index.html";
+  });
+
+  // Subject click
+  $(".subject-card").click(function(){
+    $(".subject-card").removeClass("selected");
+    $(this).addClass("selected");
+    selectedSubject = $(this).data("subject");
+
+    // Update steps
+    $("#step1").removeClass("active").addClass("done");
+    $("#step2").addClass("active");
+
+    // Update and show difficulty
+    $("#selectedSubjectLabel").text(selectedSubject);
+    $("#diffSection").slideDown(350);
+
+    // Scroll to difficulty
+    $("html,body").animate({ scrollTop: $("#diffSection").offset().top - 100 }, 500);
+  });
+
+  // Difficulty click
+  $(".diff-btn").click(function(){
+    $(".diff-btn").removeClass("active");
+    $(this).addClass("active");
+    selectedDiff = $(this).data("diff");
+
+    $("#step2").removeClass("active").addClass("done");
+    $("#step3").addClass("active");
+
+    $("#proceedBtn").fadeIn(300);
+  });
+
+  // Start quiz
+  $("#proceedBtn").click(function(){
+    if(!selectedSubject || !selectedDiff) return;
+    localStorage.setItem("quizSubject", selectedSubject);
+    localStorage.setItem("quizDifficulty", selectedDiff);
+    $("body").fadeOut(400, function(){
+      window.location.href = "instructions.html";
+    });
+  });
+
+});
+</script>
+</body>
+</html>

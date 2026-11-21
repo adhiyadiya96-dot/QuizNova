@@ -1,0 +1,286 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Quiz | QuizNova</title>
+<link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
+<link href="https://cdn.jsdelivr.net/npm/bootstrap-icons/font/bootstrap-icons.css" rel="stylesheet">
+<link rel="stylesheet" href="css/style.css">
+<style>
+  body {
+    min-height: 100vh;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+  }
+
+  .quiz-wrapper {
+    width: 100%; max-width: 780px;
+    padding: 20px;
+  }
+
+  .quiz-card {
+    background: rgba(255,255,255,0.05);
+    backdrop-filter: blur(20px);
+    border: 1px solid rgba(255,255,255,0.12);
+    border-radius: 28px;
+    padding: 40px;
+    box-shadow: 0 25px 70px rgba(0,0,0,0.5);
+    animation: cardIn 0.5s cubic-bezier(0.34,1.56,0.64,1);
+  }
+
+  @keyframes cardIn {
+    from { opacity: 0; transform: translateY(30px) scale(0.97); }
+    to { opacity: 1; transform: translateY(0) scale(1); }
+  }
+
+  /* Header */
+  .quiz-header {
+    display: flex; justify-content: space-between; align-items: center;
+    margin-bottom: 20px;
+  }
+  #qno { font-size: 13px; color: #8892b0 !important; font-weight: 500; }
+  #subjectBadge {
+    font-size: 12px; font-weight: 600;
+    padding: 4px 12px; border-radius: 50px;
+    background: rgba(56,189,248,0.12);
+    border: 1px solid rgba(56,189,248,0.25);
+    color: #38bdf8 !important;
+  }
+
+  /* Progress */
+  .progress-dots {
+    display: flex; gap: 5px; margin-bottom: 18px; flex-wrap: wrap;
+  }
+  .dot {
+    width: 28px; height: 6px; border-radius: 3px;
+    background: rgba(255,255,255,0.1);
+    transition: 0.3s;
+  }
+  .dot.answered-correct { background: #22c55e; }
+  .dot.answered-wrong { background: #ef4444; }
+  .dot.current { background: #38bdf8; box-shadow: 0 0 8px rgba(56,189,248,0.6); }
+
+  /* Timer */
+  .timer-row {
+    display: flex; align-items: center; gap: 12px; margin-bottom: 22px;
+  }
+  .timer-bar {
+    flex: 1; height: 6px;
+    background: rgba(255,255,255,0.08);
+    border-radius: 20px; overflow: hidden;
+  }
+  #timerFill {
+    height: 100%; width: 100%;
+    background: linear-gradient(90deg, #38bdf8, #a78bfa);
+    border-radius: 20px;
+    transition: width 1s linear;
+  }
+  #timerText {
+    font-size: 13px; font-weight: 700;
+    color: #38bdf8 !important; min-width: 28px;
+    text-align: right;
+  }
+
+  /* Question */
+  #question {
+    font-size: 20px; font-weight: 600; line-height: 1.5;
+    margin-bottom: 24px;
+    color: #f0f4ff !important;
+  }
+
+  /* Options */
+  #options { display: flex; flex-direction: column; gap: 0; }
+
+  .option {
+    display: flex; align-items: center; gap: 14px;
+    padding: 15px 18px;
+    border-radius: 14px;
+    border: 1px solid rgba(255,255,255,0.10);
+    background: rgba(255,255,255,0.04);
+    cursor: pointer;
+    transition: all 0.25s ease;
+    margin-bottom: 10px;
+  }
+  .option:hover { 
+    background: rgba(56,189,248,0.08); 
+    transform: translateX(5px); 
+    border-color: rgba(56,189,248,0.4); 
+  }
+  .opt-letter {
+    width: 32px; height: 32px; border-radius: 10px;
+    display: flex; align-items: center; justify-content: center;
+    font-weight: 700; font-size: 13px;
+    background: rgba(255,255,255,0.08);
+    border: 1px solid rgba(255,255,255,0.12);
+    color: #8892b0 !important;
+    flex-shrink: 0; transition: 0.25s;
+  }
+  .option label { cursor: pointer; font-size: 15px; flex: 1; color: #f0f4ff !important; }
+  .option input { display: none; }
+  .opt-icon { font-size: 16px; flex-shrink: 0; display: none; }
+
+  /* States */
+  .option.correct {
+    border: 2px solid #22c55e !important;
+    background: rgba(34,197,94,0.10) !important;
+    box-shadow: 0 0 20px rgba(34,197,94,0.25);
+    animation: correctPop 0.4s cubic-bezier(0.34,1.56,0.64,1);
+  }
+  .option.correct .opt-letter { background: #22c55e; color: #020617 !important; border-color: #22c55e; }
+  .option.correct .opt-icon { display: block; color: #22c55e !important; }
+
+  .option.wrong {
+    border: 2px solid #ef4444 !important;
+    background: rgba(239,68,68,0.10) !important;
+    box-shadow: 0 0 20px rgba(239,68,68,0.25);
+    animation: wrongBounce 0.4s ease;
+  }
+  .option.wrong .opt-letter { background: #ef4444; color: #fff !important; border-color: #ef4444; }
+  .option.wrong .opt-icon { display: block; color: #ef4444 !important; }
+
+  @keyframes correctPop {
+    0% { transform: scale(1); }
+    50% { transform: scale(1.025); }
+    100% { transform: scale(1); }
+  }
+  @keyframes wrongBounce {
+    0%,100% { transform: translateX(0); }
+    20% { transform: translateX(-8px); }
+    40% { transform: translateX(8px); }
+    60% { transform: translateX(-4px); }
+    80% { transform: translateX(4px); }
+  }
+
+  /* Score tracker */
+  .score-tracker {
+    display: flex; gap: 12px; margin-bottom: 20px;
+    font-size: 13px;
+  }
+  .score-item {
+    display: flex; align-items: center; gap: 5px;
+    background: rgba(255,255,255,0.04);
+    border: 1px solid rgba(255,255,255,0.08);
+    border-radius: 50px; padding: 4px 12px;
+  }
+  .score-item.correct-count i, .score-item.correct-count span { color: #22c55e !important; }
+  .score-item.wrong-count i, .score-item.wrong-count span { color: #ef4444 !important; }
+  .score-item.skip-count i, .score-item.skip-count span { color: #8892b0 !important; }
+
+  /* Nav */
+  .quiz-nav { margin-top: 24px; display: flex; gap: 12px; }
+  .quiz-nav button { flex: 1; padding: 13px; border-radius: 14px; font-weight: 600; font-size: 15px; transition: 0.3s; }
+  #nextBtn { background: linear-gradient(90deg, #38bdf8, #6366f1); border: none; color: #020617 !important; }
+  #nextBtn:hover { transform: scale(1.03); box-shadow: 0 10px 30px rgba(56,189,248,0.4); }
+</style>
+</head>
+
+<body>
+<div class="quiz-wrapper">
+  <div class="quiz-card">
+
+    <!-- Header -->
+    <div class="quiz-header">
+      <span id="qno">Question 1 / 10</span>
+      <span id="subjectBadge">Subject · Level</span>
+    </div>
+
+    <!-- Progress Dots -->
+    <div class="progress-dots" id="progressDots"></div>
+
+    <!-- Timer -->
+    <div class="timer-row">
+      <i class="bi bi-clock" style="color:#8892b0; font-size:13px;"></i>
+      <div class="timer-bar">
+        <div id="timerFill"></div>
+      </div>
+      <span id="timerText">15s</span>
+    </div>
+
+    <!-- Score tracker -->
+    <div class="score-tracker">
+      <div class="score-item correct-count">
+        <i class="bi bi-check-circle-fill"></i>
+        <span id="correctCount">0</span>
+      </div>
+      <div class="score-item wrong-count">
+        <i class="bi bi-x-circle-fill"></i>
+        <span id="wrongCount">0</span>
+      </div>
+      <div class="score-item skip-count">
+        <i class="bi bi-dash-circle"></i>
+        <span id="skipCount">0</span>
+      </div>
+    </div>
+
+    <!-- Question -->
+    <h4 id="question"></h4>
+
+    <!-- Options -->
+    <div id="options"></div>
+
+    <!-- Nav -->
+    <div class="quiz-nav">
+      <button id="prevBtn" class="btn btn-outline-light">← Previous</button>
+      <button id="nextBtn" class="btn">Next →</button>
+    </div>
+
+  </div>
+</div>
+
+<script src="https://code.jquery.com/jquery-3.7.1.min.js"></script>
+<script src="js/quiz.js"></script>
+<script>
+// Extra: update progress dots and score counters after answers
+var _origCheck = checkAnswer;
+checkAnswer = function(selected){
+  _origCheck(selected);
+  updateProgressDots();
+  updateScoreTracker();
+};
+
+function updateProgressDots(){
+  var dots = $("#progressDots .dot");
+  dots.removeClass("answered-correct answered-wrong current");
+  for(var i = 0; i < questions.length; i++){
+    var $dot = dots.eq(i);
+    if(i === current) $dot.addClass("current");
+    else if(userAnswers[i] !== null){
+      if(userAnswers[i] === questions[i][5]) $dot.addClass("answered-correct");
+      else $dot.addClass("answered-wrong");
+    }
+  }
+}
+
+function updateScoreTracker(){
+  var correct = 0, wrong = 0, skipped = 0;
+  userAnswers.forEach(function(ans, i){
+    if(ans === null) return;
+    if(ans === questions[i][5]) correct++;
+    else wrong++;
+  });
+  skipped = questions.length - userAnswers.filter(a=>a!==null).length;
+  $("#correctCount").text(correct);
+  $("#wrongCount").text(wrong);
+  $("#skipCount").text(skipped);
+}
+
+// Init dots
+$(document).ready(function(){
+  for(var i = 0; i < 10; i++){
+    $("#progressDots").append('<div class="dot"></div>');
+  }
+  updateProgressDots();
+});
+
+// Override loadQuestion to update dots
+var _origLoad = loadQuestion;
+loadQuestion = function(){
+  _origLoad();
+  setTimeout(updateProgressDots, 50);
+  updateScoreTracker();
+};
+</script>
+</body>
+</html>

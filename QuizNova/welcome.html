@@ -1,0 +1,149 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Welcome | QuizNova</title>
+<link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
+<link href="https://cdn.jsdelivr.net/npm/bootstrap-icons/font/bootstrap-icons.css" rel="stylesheet">
+<link rel="stylesheet" href="css/style.css">
+<script src="https://code.jquery.com/jquery-3.7.1.min.js"></script>
+<style>
+  .center-container {
+    min-height: calc(100vh - 140px);
+    display: flex; align-items: center; justify-content: center;
+  }
+  .welcome-card {
+    text-align: center; max-width: 560px; width: 100%;
+    padding: 50px 40px;
+    position: relative; overflow: hidden;
+  }
+  .welcome-card::before {
+    content:''; position:absolute; top:0; left:0;
+    width:100%; height:4px;
+    background: linear-gradient(90deg, #38bdf8, #6366f1, #a78bfa);
+  }
+  .greeting {
+    font-size: 2.2rem; font-weight: 800; line-height: 1.2; margin-bottom: 12px;
+  }
+  .greeting .name-highlight {
+    background: linear-gradient(135deg, #38bdf8, #a78bfa);
+    -webkit-background-clip: text; -webkit-text-fill-color: transparent;
+    background-clip: text;
+  }
+  .welcome-sub { font-size: 15px; color: #8892b0 !important; margin-bottom: 32px; }
+
+  .feature-pills {
+    display: flex; justify-content: center; gap: 10px; flex-wrap: wrap;
+    margin-bottom: 32px;
+  }
+  .fpill {
+    display: flex; align-items: center; gap: 6px;
+    background: rgba(255,255,255,0.05);
+    border: 1px solid rgba(255,255,255,0.10);
+    border-radius: 50px; padding: 6px 14px;
+    font-size: 12px; color: #8892b0 !important;
+  }
+  .fpill i { color: #38bdf8 !important; font-size: 13px; }
+
+  .quick-stats {
+    display: flex; gap: 12px; margin-bottom: 28px; flex-wrap: wrap; justify-content: center;
+  }
+  .qstat {
+    flex: 1; min-width: 90px;
+    background: rgba(255,255,255,0.04);
+    border: 1px solid rgba(255,255,255,0.08);
+    border-radius: 14px; padding: 14px 10px;
+    text-align: center;
+  }
+  .qstat .val { font-size: 22px; font-weight: 800; font-family: 'Space Grotesk',sans-serif; }
+  .qstat .lbl { font-size: 11px; color: #8892b0 !important; margin-top: 2px; }
+
+  .wave { display: inline-block; animation: wave 2s infinite; }
+  @keyframes wave { 0%,100%{transform:rotate(0)} 50%{transform:rotate(20deg)} }
+</style>
+</head>
+<body>
+
+<nav class="navbar fixed-top d-flex justify-content-between align-items-center px-4">
+  <span class="brand">QuizNova</span>
+  <div class="d-flex align-items-center gap-3">
+    <span id="userEmail" class="text-muted" style="font-size:12px; display:none;" id="userEmailDisplay"></span>
+    <a href="subject.html" title="Subjects"><i class="bi bi-journal-bookmark-fill"></i></a>
+    <a href="about.html" title="About"><i class="bi bi-info-circle-fill"></i></a>
+    <button id="logoutBtn" class="btn btn-outline-light btn-sm" style="font-size:12px;">Logout</button>
+  </div>
+</nav>
+
+<div style="height:90px"></div>
+
+<div class="container center-container fade-in">
+  <div class="card welcome-card">
+
+    <div style="font-size:48px; margin-bottom:12px;">🎓</div>
+
+    <div class="greeting">
+      Welcome back, <br>
+      <span class="name-highlight" id="username">Student</span>
+      <span class="wave">👋</span>
+    </div>
+
+    <p class="welcome-sub">Ready to test your knowledge? Pick a subject and challenge yourself!</p>
+
+    <div class="feature-pills">
+      <div class="fpill"><i class="bi bi-lightning-charge-fill"></i> Instant Feedback</div>
+      <div class="fpill"><i class="bi bi-bar-chart-fill"></i> Track Progress</div>
+      <div class="fpill"><i class="bi bi-fire"></i> 3 Difficulty Levels</div>
+      <div class="fpill"><i class="bi bi-book-fill"></i> 8 Subjects</div>
+    </div>
+
+    <div class="quick-stats">
+      <div class="qstat">
+        <div class="val" id="statAttempts" style="color:#38bdf8 !important;">0</div>
+        <div class="lbl">Quizzes Taken</div>
+      </div>
+      <div class="qstat">
+        <div class="val" id="statBestScore" style="color:#22c55e !important;">-</div>
+        <div class="lbl">Best Score</div>
+      </div>
+      <div class="qstat">
+        <div class="val" style="color:#a78bfa !important;">8</div>
+        <div class="lbl">Subjects</div>
+      </div>
+    </div>
+
+    <a href="subject.html" class="btn btn-primary btn-lg w-100" style="font-size:16px;">
+      <i class="bi bi-play-circle me-2"></i>Choose Subject & Play
+    </a>
+
+  </div>
+</div>
+
+<footer class="mt-5 text-center">
+  <div class="container py-4">© 2026 QuizNova</div>
+</footer>
+
+<script>
+$(document).ready(function(){
+  var user = localStorage.getItem("quizUser");
+  if(!user){ window.location.href = "index.html"; return; }
+
+  var name = user.split("@")[0];
+  $("#username").text(name.charAt(0).toUpperCase() + name.slice(1));
+  $("#userEmail").text(user).show();
+
+  var attempts = parseInt(localStorage.getItem("quizAttempts") || 0);
+  var bestScore = localStorage.getItem("quizBestScore");
+  $("#statAttempts").text(attempts);
+  $("#statBestScore").text(bestScore ? bestScore + "/10" : "—");
+
+  $(".welcome-card").hide().fadeIn(700);
+
+  $("#logoutBtn").click(function(){
+    localStorage.clear();
+    $("body").fadeOut(400, function(){ window.location.href = "index.html"; });
+  });
+});
+</script>
+</body>
+</html>

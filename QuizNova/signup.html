@@ -1,0 +1,292 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<title>Sign Up | QuizNova</title>
+
+<link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
+<link href="https://cdn.jsdelivr.net/npm/bootstrap-icons/font/bootstrap-icons.css" rel="stylesheet">
+
+<style>
+@import url('https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;600;700&display=swap');
+
+*{
+  font-family:'Poppins',sans-serif;
+}
+
+body{
+  min-height:100vh;
+  background:url('assets/images/learning-illustration.png') no-repeat center/cover fixed;
+  color:#f8fafc;
+  position:relative;
+}
+
+body::before{
+  content:'';
+  position:fixed;
+  inset:0;
+  background:
+    radial-gradient(circle at top, rgba(56,189,248,.18), transparent 60%),
+    rgba(5,8,20,.88);
+  z-index:0;
+}
+
+/* Navbar */
+.navbar{
+  background:rgba(5,8,20,.92);
+  backdrop-filter:blur(14px);
+  border-bottom:1px solid rgba(255,255,255,.2);
+  z-index:2;
+}
+
+/* Card */
+.signup-card{
+  background:linear-gradient(180deg,
+    rgba(255,255,255,.12),
+    rgba(255,255,255,.03));
+  backdrop-filter:blur(20px);
+  border-radius:30px;
+  border:1px solid rgba(255,255,255,.28);
+  box-shadow:0 30px 90px rgba(56,189,248,.18);
+  animation:slideFade .9s ease;
+  position:relative;
+  z-index:1;
+  overflow:hidden;
+}
+
+/* Top color strip */
+.signup-card::before{
+  content:'';
+  position:absolute;
+  top:0;
+  left:0;
+  width:100%;
+  height:5px;
+  background:linear-gradient(90deg,#38bdf8,#6366f1,#a78bfa);
+}
+
+/* Animations */
+@keyframes slideFade{
+  from{opacity:0; transform:translateY(40px)}
+  to{opacity:1; transform:translateY(0)}
+}
+
+@keyframes popIn{
+  0%{transform:scale(.6); opacity:0}
+  70%{transform:scale(1.15)}
+  100%{transform:scale(1); opacity:1}
+}
+
+/* Emoji icon */
+.emoji-icon{
+  width:78px;
+  height:78px;
+  border-radius:24px;
+  background:linear-gradient(135deg,#38bdf8,#a78bfa);
+  display:flex;
+  align-items:center;
+  justify-content:center;
+  font-size:36px;
+  color:#020617;
+  margin:auto;
+  box-shadow:0 15px 40px rgba(56,189,248,.6);
+  animation:popIn .9s ease;
+}
+
+/* Headings */
+h3{
+  font-weight:700;
+  letter-spacing:.4px;
+}
+
+.text-muted{
+  color:#cbd5f5 !important;
+}
+
+/* Labels */
+label{
+  font-size:14px;
+  font-weight:600;
+  color:#e5e7eb;
+}
+
+/* Inputs */
+.input-group-text{
+  background:rgba(255,255,255,.14);
+  border:1px solid rgba(255,255,255,.3);
+  color:#93c5fd;
+}
+
+.form-control{
+  background:rgba(255,255,255,.14);
+  border:1px solid rgba(255,255,255,.3);
+  color:#f8fafc;
+}
+
+.form-control::placeholder{
+  color:#cbd5f5;
+}
+
+.form-control:focus{
+  background:rgba(255,255,255,.2);
+  border-color:#38bdf8;
+  box-shadow:0 0 0 .2rem rgba(56,189,248,.35);
+  color:#fff;
+}
+
+/* Error text */
+.error{
+  font-size:13px;
+  color:#fca5a5;
+  display:none;
+  margin-top:5px;
+}
+
+/* Divider */
+.divider{
+  height:1px;
+  background:linear-gradient(90deg,transparent,#38bdf8,transparent);
+  margin:22px 0;
+}
+
+/* Button */
+.btn-primary{
+  background:linear-gradient(135deg,#38bdf8,#6366f1);
+  border:none;
+  font-weight:600;
+  letter-spacing:.4px;
+  padding:12px;
+  box-shadow:0 12px 35px rgba(56,189,248,.5);
+}
+
+.btn-primary:hover{
+  transform:translateY(-1px);
+}
+
+/* Links */
+.auth-link{
+  color:#38bdf8;
+  font-weight:600;
+  text-decoration:none;
+}
+.auth-link:hover{
+  text-decoration:underline;
+}
+</style>
+</head>
+
+<body>
+
+<!-- Navbar -->
+<nav class="navbar fixed-top">
+  <div class="container d-flex justify-content-between">
+    <span class="fw-bold fs-4 text-white">QuizNova</span>
+    <span class="text-secondary">Learn • Practice • Excel</span>
+  </div>
+</nav>
+
+<div style="height:100px"></div>
+
+<!-- Signup -->
+<div class="container">
+  <div class="row justify-content-center">
+    <div class="col-lg-6 col-md-8">
+
+      <div class="signup-card p-4 p-md-5">
+
+        <div class="text-center mb-4">
+          <div class="emoji-icon mb-3">🎓</div>
+          <h3>Create Your Account</h3>
+          <p class="text-muted">Step into smarter learning with QuizNova</p>
+        </div>
+
+        <form id="signupForm">
+
+          <div class="mb-3">
+            <label>Full Name</label>
+            <div class="input-group">
+              <span class="input-group-text"><i class="bi bi-person"></i></span>
+              <input type="text" id="name" class="form-control" placeholder="Enter your name">
+            </div>
+            <div class="error" id="nameErr">Name is required</div>
+          </div>
+
+          <div class="mb-3">
+            <label>Email Address</label>
+            <div class="input-group">
+              <span class="input-group-text"><i class="bi bi-envelope"></i></span>
+              <input type="email" id="email" class="form-control" placeholder="you@example.com">
+            </div>
+            <div class="error" id="emailErr">Email is required</div>
+          </div>
+
+          <div class="mb-3">
+            <label>Password</label>
+            <div class="input-group">
+              <span class="input-group-text"><i class="bi bi-lock"></i></span>
+              <input type="password" id="password" class="form-control" placeholder="Create password">
+            </div>
+            <div class="error" id="passErr">Password is required</div>
+          </div>
+
+          <div class="mb-3">
+            <label>Confirm Password</label>
+            <div class="input-group">
+              <span class="input-group-text"><i class="bi bi-shield-lock"></i></span>
+              <input type="password" id="cpassword" class="form-control" placeholder="Re-enter password">
+            </div>
+            <div class="error" id="cpassErr">Confirm password is required</div>
+          </div>
+
+          <button type="submit" class="btn btn-primary w-100 mt-2">
+            Create Account
+          </button>
+
+          <div class="divider"></div>
+
+          <div class="text-center">
+            <span class="text-muted">Already part of QuizNova?</span>
+            <a href="index.html" class="auth-link ms-1">Login</a>
+          </div>
+
+        </form>
+
+      </div>
+
+    </div>
+  </div>
+</div>
+
+<!-- Footer -->
+<footer class="mt-5">
+  <div class="container py-4 text-center text-secondary">
+    © 2026 QuizNova
+  </div>
+</footer>
+
+<script>
+document.getElementById("signupForm").addEventListener("submit", function(e){
+  e.preventDefault();
+
+  let valid = true;
+
+  const name = document.getElementById("name").value.trim();
+  const email = document.getElementById("email").value.trim();
+  const pass = document.getElementById("password").value.trim();
+  const cpass = document.getElementById("cpassword").value.trim();
+
+  document.querySelectorAll(".error").forEach(err => err.style.display="none");
+
+  if(name===""){ nameErr.style.display="block"; valid=false; }
+  if(email===""){ emailErr.style.display="block"; valid=false; }
+  if(pass===""){ passErr.style.display="block"; valid=false; }
+  if(cpass===""){ cpassErr.style.display="block"; valid=false; }
+
+  if(valid){
+    console.log("Signup validated ✔ Ready for backend");
+  }
+});
+</script>
+
+</body>
+</html>

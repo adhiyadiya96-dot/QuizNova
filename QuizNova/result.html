@@ -1,0 +1,485 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Quiz Result | QuizNova</title>
+<link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
+<link href="https://cdn.jsdelivr.net/npm/bootstrap-icons/font/bootstrap-icons.css" rel="stylesheet">
+<link rel="stylesheet" href="css/style.css">
+<script src="https://code.jquery.com/jquery-3.7.1.min.js"></script>
+<style>
+  /* Result card */
+  .result-card {
+    background: rgba(255,255,255,0.05);
+    backdrop-filter: blur(20px);
+    border-radius: 28px;
+    border: 1px solid rgba(255,255,255,0.12);
+    padding: 40px;
+    box-shadow: 0 25px 70px rgba(0,0,0,0.5);
+  }
+
+  /* Score circle */
+  .score-circle-wrap {
+    position: relative;
+    width: 160px; height: 160px;
+    margin: auto;
+  }
+  .score-circle-wrap svg {
+    transform: rotate(-90deg);
+  }
+  .score-circle-inner {
+    position: absolute;
+    inset: 0; display: flex;
+    flex-direction: column;
+    align-items: center; justify-content: center;
+  }
+  .score-circle-inner .pct {
+    font-size: 32px; font-weight: 800;
+    font-family: 'Space Grotesk', sans-serif;
+    line-height: 1;
+  }
+  .score-circle-inner .score-label { font-size: 11px; color: #8892b0 !important; }
+
+  /* Stats row */
+  .stat-pill {
+    background: rgba(255,255,255,0.05);
+    border: 1px solid rgba(255,255,255,0.10);
+    border-radius: 16px;
+    padding: 14px;
+    text-align: center;
+    transition: 0.3s;
+  }
+  .stat-pill:hover { background: rgba(255,255,255,0.08); transform: translateY(-3px); }
+  .stat-pill .val { font-size: 22px; font-weight: 800; font-family: 'Space Grotesk',sans-serif; }
+  .stat-pill .lbl { font-size: 11px; color: #8892b0 !important; margin-top: 2px; }
+
+  /* Message badge */
+  .result-badge {
+    display: inline-flex; align-items: center; gap: 8px;
+    padding: 10px 24px; border-radius: 50px;
+    font-size: 16px; font-weight: 700;
+    margin: 16px auto;
+  }
+  .badge-excellent { background: rgba(34,197,94,0.15); border: 2px solid #22c55e; color: #22c55e !important; }
+  .badge-good { background: rgba(245,158,11,0.15); border: 2px solid #f59e0b; color: #f59e0b !important; }
+  .badge-practice { background: rgba(239,68,68,0.12); border: 2px solid #ef4444; color: #ef4444 !important; }
+
+  /* Profile section */
+  .profile-mini {
+    background: rgba(255,255,255,0.04);
+    border: 1px solid rgba(255,255,255,0.10);
+    border-radius: 20px;
+    padding: 20px;
+    display: flex; align-items: center; gap: 16px;
+  }
+  .profile-mini .avatar {
+    width: 52px; height: 52px; border-radius: 50%;
+    background: linear-gradient(135deg, rgba(56,189,248,0.25), rgba(167,139,250,0.25));
+    border: 2px solid rgba(56,189,248,0.4);
+    display: flex; align-items: center; justify-content: center;
+    font-size: 22px; flex-shrink: 0;
+  }
+  .profile-mini .avatar i { color: #38bdf8 !important; }
+  .profile-mini .user-info { flex: 1; }
+  .profile-mini .user-name { font-weight: 700; font-size: 16px; }
+  .profile-mini .user-email { font-size: 12px; color: #8892b0 !important; }
+
+  .diff-badge {
+    display: inline-flex; align-items: center; gap: 5px;
+    padding: 3px 10px; border-radius: 50px;
+    font-size: 11px; font-weight: 700;
+  }
+  .diff-easy { background: rgba(34,197,94,0.15); color: #22c55e !important; border: 1px solid rgba(34,197,94,0.3); }
+  .diff-medium { background: rgba(245,158,11,0.15); color: #f59e0b !important; border: 1px solid rgba(245,158,11,0.3); }
+  .diff-hard { background: rgba(239,68,68,0.12); color: #ef4444 !important; border: 1px solid rgba(239,68,68,0.3); }
+
+  /* Review section */
+  .review-section {
+    margin-top: 30px;
+  }
+  .review-section h5 {
+    font-size: 18px; font-weight: 700; margin-bottom: 16px;
+    display: flex; align-items: center; gap: 8px;
+  }
+
+  .review-item {
+    background: rgba(255,255,255,0.04);
+    border: 1px solid rgba(255,255,255,0.08);
+    border-radius: 18px;
+    padding: 20px;
+    margin-bottom: 14px;
+    transition: 0.3s;
+    animation: slideUp 0.4s ease both;
+  }
+  @keyframes slideUp {
+    from { opacity: 0; transform: translateY(12px); }
+    to { opacity: 1; transform: translateY(0); }
+  }
+
+  .review-item.correct-q { border-color: rgba(34,197,94,0.3); background: rgba(34,197,94,0.04); }
+  .review-item.wrong-q { border-color: rgba(239,68,68,0.3); background: rgba(239,68,68,0.04); }
+  .review-item.skipped-q { border-color: rgba(138,145,176,0.3); }
+
+  .q-header {
+    display: flex; justify-content: space-between; align-items: flex-start;
+    margin-bottom: 12px; gap: 12px;
+  }
+  .q-num {
+    font-size: 11px; font-weight: 700;
+    padding: 2px 10px; border-radius: 50px;
+    background: rgba(255,255,255,0.08);
+    color: #8892b0 !important; flex-shrink: 0;
+  }
+  .q-text { font-size: 15px; font-weight: 600; flex: 1; }
+  .q-status-icon { font-size: 18px; flex-shrink: 0; }
+
+  .review-options { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; }
+  @media(max-width:576px){ .review-options { grid-template-columns: 1fr; } }
+
+  .rev-opt {
+    display: flex; align-items: center; gap: 10px;
+    padding: 10px 14px; border-radius: 12px;
+    border: 1px solid rgba(255,255,255,0.08);
+    background: rgba(255,255,255,0.03);
+    font-size: 13px;
+    transition: 0.2s;
+  }
+  .rev-opt .opt-ltr {
+    width: 26px; height: 26px; border-radius: 8px;
+    display: flex; align-items: center; justify-content: center;
+    font-size: 11px; font-weight: 700;
+    background: rgba(255,255,255,0.08);
+    color: #8892b0 !important; flex-shrink: 0;
+  }
+  .rev-opt span { color: #c7d2fe !important; }
+
+  .rev-opt.is-correct {
+    border-color: rgba(34,197,94,0.4);
+    background: rgba(34,197,94,0.08);
+  }
+  .rev-opt.is-correct .opt-ltr { background: #22c55e; color: #020617 !important; }
+  .rev-opt.is-correct span { color: #f0f4ff !important; }
+
+  .rev-opt.is-wrong {
+    border-color: rgba(239,68,68,0.4);
+    background: rgba(239,68,68,0.08);
+  }
+  .rev-opt.is-wrong .opt-ltr { background: #ef4444; color: #fff !important; }
+
+  .rev-opt.is-skipped-correct {
+    border-color: rgba(34,197,94,0.3);
+    background: rgba(34,197,94,0.05);
+  }
+
+  .skipped-label {
+    font-size: 12px; color: #8892b0 !important;
+    background: rgba(255,255,255,0.05);
+    padding: 4px 12px; border-radius: 50px;
+    display: inline-block; margin-top: 10px;
+  }
+
+  /* Insights */
+  .insight-box {
+    background: rgba(255,255,255,0.04);
+    border: 1px solid rgba(56,189,248,0.2);
+    border-radius: 20px;
+    padding: 24px;
+    margin-top: 24px;
+  }
+  .insight-row {
+    display: flex; justify-content: space-between; align-items: center;
+    padding: 10px 0; border-bottom: 1px solid rgba(255,255,255,0.06);
+    font-size: 14px;
+  }
+  .insight-row:last-child { border-bottom: none; }
+  .insight-row .il { color: #8892b0 !important; }
+  .insight-row .iv { font-weight: 600; color: #f0f4ff !important; }
+
+  /* Action buttons */
+  .action-btn { min-width: 140px; }
+</style>
+</head>
+
+<body>
+<!-- Navbar -->
+<nav class="navbar fixed-top">
+  <div class="container d-flex justify-content-between align-items-center">
+    <span class="brand">QuizNova</span>
+    <span id="userNavBadge" class="text-muted" style="font-size:13px;"></span>
+  </div>
+</nav>
+
+<div style="height:90px"></div>
+
+<div class="container pb-5 fade-in">
+  <div class="row justify-content-center">
+    <div class="col-lg-9 col-xl-8">
+
+      <!-- Result Card -->
+      <div class="result-card mb-4">
+
+        <!-- Profile Mini -->
+        <div class="profile-mini mb-4">
+          <div class="avatar"><i class="bi bi-person-fill"></i></div>
+          <div class="user-info">
+            <div class="user-name" id="profileName">Student</div>
+            <div class="user-email" id="profileEmail">student@email.com</div>
+          </div>
+          <div class="text-end">
+            <div id="subjectBadgeResult" style="font-size:13px; color:#38bdf8 !important; font-weight:600;"></div>
+            <div id="diffBadgeResult" class="diff-badge mt-1"></div>
+          </div>
+        </div>
+
+        <!-- Score Circle -->
+        <div class="text-center mb-4">
+          <div class="score-circle-wrap mb-3">
+            <svg width="160" height="160" viewBox="0 0 160 160">
+              <circle cx="80" cy="80" r="68" fill="none" stroke="rgba(255,255,255,0.06)" stroke-width="10"/>
+              <circle id="scoreArc" cx="80" cy="80" r="68" fill="none" stroke-width="10"
+                stroke-linecap="round"
+                stroke-dasharray="427"
+                stroke-dashoffset="427"
+                style="transition: stroke-dashoffset 1.2s cubic-bezier(0.25,0.46,0.45,0.94);"
+              />
+            </svg>
+            <div class="score-circle-inner">
+              <div class="pct" id="pctText">0%</div>
+              <div class="score-label">Score</div>
+            </div>
+          </div>
+
+          <div id="resultBadge" class="result-badge"></div>
+          <div id="quizTitle" style="font-size:13px; color:#8892b0 !important;"></div>
+        </div>
+
+        <!-- Stats -->
+        <div class="row g-3 mb-4">
+          <div class="col-6 col-md-3">
+            <div class="stat-pill">
+              <div class="val" id="statScore" style="color:#38bdf8 !important;">-</div>
+              <div class="lbl">Score</div>
+            </div>
+          </div>
+          <div class="col-6 col-md-3">
+            <div class="stat-pill">
+              <div class="val" id="statCorrect" style="color:#22c55e !important;">-</div>
+              <div class="lbl">Correct</div>
+            </div>
+          </div>
+          <div class="col-6 col-md-3">
+            <div class="stat-pill">
+              <div class="val" id="statWrong" style="color:#ef4444 !important;">-</div>
+              <div class="lbl">Wrong</div>
+            </div>
+          </div>
+          <div class="col-6 col-md-3">
+            <div class="stat-pill">
+              <div class="val" id="statSkipped" style="color:#8892b0 !important;">-</div>
+              <div class="lbl">Skipped</div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Action buttons -->
+        <div class="d-flex flex-wrap justify-content-center gap-3">
+          <button onclick="window.location.href='subject.html'" class="btn btn-primary action-btn">
+            <i class="bi bi-arrow-repeat me-2"></i>Play Again
+          </button>
+          <button onclick="window.location.href='subject.html'" class="btn btn-outline-light action-btn">
+            <i class="bi bi-journal-bookmark me-2"></i>New Subject
+          </button>
+        </div>
+      </div>
+
+      <!-- Insights -->
+      <div class="insight-box" id="insightBox" style="display:none;">
+        <h6 class="fw-bold mb-3" style="color:#38bdf8 !important;">
+          <i class="bi bi-bar-chart-fill me-2"></i>Performance Insights
+        </h6>
+        <div class="insight-row">
+          <span class="il">Accuracy</span>
+          <span class="iv" id="insAccuracy">-</span>
+        </div>
+        <div class="insight-row">
+          <span class="il">Completion</span>
+          <span class="iv" id="insCompletion">-</span>
+        </div>
+        <div class="insight-row">
+          <span class="il">Performance Level</span>
+          <span class="iv" id="insLevel">-</span>
+        </div>
+        <div class="insight-row">
+          <span class="il">Total Attempts</span>
+          <span class="iv" id="insTotalAttempts">-</span>
+        </div>
+        <div class="insight-row">
+          <span class="il">Difficulty</span>
+          <span class="iv" id="insDifficulty">-</span>
+        </div>
+      </div>
+
+      <!-- Answer Review -->
+      <div class="review-section" id="reviewSection" style="display:none;">
+        <div class="result-card">
+          <h5>
+            <i class="bi bi-clipboard2-check" style="color:#38bdf8;"></i>
+            Answer Review
+          </h5>
+          <div id="reviewItems"></div>
+        </div>
+      </div>
+
+    </div>
+  </div>
+</div>
+
+<footer class="mt-5">
+  <div class="container py-4 text-center">© 2026 QuizNova</div>
+</footer>
+
+<script>
+$(document).ready(function(){
+
+  // Get params
+  var params = new URLSearchParams(window.location.search);
+  var score = parseInt(params.get("score")) || 0;
+  var total = parseInt(params.get("total")) || 10;
+  var attempted = parseInt(params.get("attempted")) || 0;
+
+  // Get stored data
+  var user = localStorage.getItem("quizUser") || "student@quiz.com";
+  var subject = localStorage.getItem("quizSubjectUsed") || localStorage.getItem("quizSubject") || "Quiz";
+  var difficulty = localStorage.getItem("quizDifficultyUsed") || localStorage.getItem("quizDifficulty") || "easy";
+  var reviewData = JSON.parse(localStorage.getItem("quizReview") || "null");
+
+  var wrong = attempted - score;
+  var skipped = total - attempted;
+  var pct = total ? Math.round((score/total)*100) : 0;
+  var accuracy = attempted ? Math.round((score/attempted)*100) : 0;
+
+  // Profile
+  var name = user.split("@")[0];
+  var displayName = name.charAt(0).toUpperCase() + name.slice(1);
+  $("#profileName").text(displayName);
+  $("#profileEmail").text(user);
+  $("#userNavBadge").text(user);
+
+  // Subject/diff badges
+  $("#subjectBadgeResult").text(subject);
+  var diffClass = difficulty === 'easy' ? 'diff-easy' : (difficulty === 'medium' ? 'diff-medium' : 'diff-hard');
+  var diffIcon = difficulty === 'easy' ? '😊' : (difficulty === 'medium' ? '⚡' : '🔥');
+  $("#diffBadgeResult").addClass(diffClass).html(diffIcon + ' ' + difficulty.charAt(0).toUpperCase() + difficulty.slice(1));
+
+  // Title
+  $("#quizTitle").text(subject + " Quiz · " + total + " Questions");
+
+  // Stats
+  $("#statScore").text(score + "/" + total);
+  $("#statCorrect").text(score);
+  $("#statWrong").text(wrong);
+  $("#statSkipped").text(skipped);
+  $("#pctText").text(pct + "%");
+
+  // Result badge
+  var badge = "", badgeClass = "";
+  if(pct >= 80){ badge = "🏆 Excellent Work!"; badgeClass = "badge-excellent"; }
+  else if(pct >= 50){ badge = "👍 Good Job!"; badgeClass = "badge-good"; }
+  else { badge = "📚 Keep Practicing!"; badgeClass = "badge-practice"; }
+  $("#resultBadge").text(badge).addClass(badgeClass);
+
+  // Animate score arc
+  // circumference = 2 * PI * 68 = 427.26
+  var circumference = 427;
+  var offset = circumference - (pct/100)*circumference;
+  var strokeColor = pct >= 80 ? "#22c55e" : (pct >= 50 ? "#f59e0b" : "#ef4444");
+
+  setTimeout(function(){
+    var arc = document.getElementById("scoreArc");
+    arc.style.strokeDashoffset = offset;
+    arc.setAttribute("stroke", strokeColor);
+  }, 200);
+
+  // Animate percent text
+  $({n:0}).animate({n:pct},{
+    duration: 1200,
+    step: function(){ $("#pctText").text(Math.round(this.n)+"%"); },
+    complete: function(){ $("#pctText").text(pct+"%"); }
+  });
+
+  // Insights
+  var attempts = parseInt(localStorage.getItem("quizAttempts") || 0) + 1;
+  localStorage.setItem("quizAttempts", attempts);
+
+  setTimeout(function(){
+    $("#insAccuracy").text(accuracy + "%");
+    $("#insCompletion").text(attempted + " / " + total + " answered");
+    $("#insDifficulty").text(difficulty.charAt(0).toUpperCase() + difficulty.slice(1));
+    $("#insTotalAttempts").text(attempts + (attempts===1?" quiz":" quizzes") + " total");
+
+    var level = accuracy >= 80 ? "🔥 High" : (accuracy >= 50 ? "👍 Medium" : "📚 Needs Practice");
+    $("#insLevel").text(level);
+
+    $("#insightBox").slideDown(600);
+  }, 800);
+
+  // Review Section
+  if(reviewData && reviewData.length > 0){
+    setTimeout(function(){
+      buildReview(reviewData);
+      $("#reviewSection").fadeIn(500);
+    }, 1000);
+  }
+
+});
+
+function buildReview(data){
+  var letters = ["A","B","C","D"];
+  data.forEach(function(item, idx){
+    var userAns = item.userAnswer;
+    var correctAns = item.correct;
+    var isCorrect = userAns !== null && userAns === correctAns;
+    var isSkipped = userAns === null;
+    var isWrong = !isCorrect && !isSkipped;
+
+    var itemClass = isCorrect ? "correct-q" : (isWrong ? "wrong-q" : "skipped-q");
+    var statusIcon = isCorrect
+      ? '<i class="bi bi-check-circle-fill" style="color:#22c55e;"></i>'
+      : (isWrong ? '<i class="bi bi-x-circle-fill" style="color:#ef4444;"></i>'
+                 : '<i class="bi bi-dash-circle" style="color:#8892b0;"></i>');
+
+    var optionsHtml = '<div class="review-options mt-2">';
+    item.options.forEach(function(opt, i){
+      var optIdx = i + 1;
+      var cls = "";
+      if(optIdx === correctAns) cls = "is-correct";
+      else if(optIdx === userAns && isWrong) cls = "is-wrong";
+      else if(isSkipped && optIdx === correctAns) cls = "is-skipped-correct";
+
+      optionsHtml += `<div class="rev-opt ${cls}">
+        <span class="opt-ltr">${letters[i]}</span>
+        <span>${opt}</span>
+      </div>`;
+    });
+    optionsHtml += '</div>';
+
+    var skippedHtml = isSkipped ? '<div class="skipped-label"><i class="bi bi-dash me-1"></i>Not answered</div>' : '';
+
+    var html = `
+      <div class="review-item ${itemClass}" style="animation-delay:${idx*0.05}s">
+        <div class="q-header">
+          <span class="q-num">Q${idx+1}</span>
+          <div class="q-text">${item.question}</div>
+          <span class="q-status-icon">${statusIcon}</span>
+        </div>
+        ${optionsHtml}
+        ${skippedHtml}
+      </div>`;
+
+    $("#reviewItems").append(html);
+  });
+}
+</script>
+</body>
+</html>
